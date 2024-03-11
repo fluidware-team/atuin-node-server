@@ -1,0 +1,1639 @@
+openapi: "3.0.0"
+info:
+  version: 0.1.0
+  title: Natuin API
+paths:
+  /:
+    get:
+      summary: Get API status
+      x-eov-operation-handler: StatusController
+      operationId: status
+      tags:
+        - status
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - homage
+                  - version
+                  - total_history
+                properties:
+                  homage:
+                    type: string
+                  version:
+                    type: string
+                  total_history:
+                    type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /account:
+    delete:
+      summary: Delete account
+      x-eov-operation-handler: AccountController
+      operationId: deleteAccount
+      tags:
+        - account
+      security:
+        - tokenAuth: [ ]
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            text/plain:
+              schema:
+                type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /account/me:
+    get:
+      summary: Get current user
+      x-eov-operation-handler: AccountController
+      operationId: getMe
+      tags:
+        - account
+      security:
+        - tokenAuth: [ ]
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /account/tokens:
+    get:
+      summary: Get current user's tokens
+      x-eov-operation-handler: AccountController
+      operationId: getTokens
+      tags:
+        - account
+      security:
+        - tokenAuth: [ ]
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - token
+                    - expiresAt
+                    - lastUsedAt
+                  properties:
+                    token:
+                      type: string
+                    expiresAt:
+                      type: string
+                      format: date-time
+                    lastUsedAt:
+                      type: string
+                      format: date-time
+                      nullable: true
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /account/tokens/{token}:
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      summary: Delete account's token
+      x-eov-operation-handler: AccountController
+      operationId: deleteToken
+      tags:
+        - account
+      security:
+        - tokenAuth: [ ]
+      responses:
+        '200':
+          description: Expected response to a valid request
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/InvalidPayloadError"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /account/validate:
+    post:
+      summary: Validate account
+      x-eov-operation-handler: AccountController
+      operationId: validateCode
+      tags:
+        - account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+                - username
+                - password
+              properties:
+                username:
+                  $ref: "#/components/schemas/NotNullOrEmptyString"
+                password:
+                  $ref: "#/components/schemas/NotNullOrEmptyString"
+                code:
+                  $ref: "#/components/schemas/NotNullOrEmptyString"
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidPayloadError"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /account/forgot-password:
+    post:
+      summary: Reset password account
+      x-eov-operation-handler: AccountController
+      operationId: forgotPassword
+      tags:
+        - account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+              properties:
+                username:
+                  $ref: "#/components/schemas/NotNullOrEmptyString"
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidPayloadError"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /account/reset-password:
+    post:
+      summary: Reset password account
+      x-eov-operation-handler: AccountController
+      operationId: resetPassword
+      tags:
+        - account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+                - password
+              properties:
+                code:
+                  $ref: "#/components/schemas/NotNullOrEmptyString"
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidPayloadError"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /account/password:
+    patch:
+      summary: Change password
+      x-eov-operation-handler: AccountController
+      operationId: changePassword
+      tags:
+        - account
+      security:
+        - tokenAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - current_password
+                - new_password
+              properties:
+                current_password:
+                  $ref: "#/components/schemas/NotNullOrEmptyString"
+                new_password:
+                  $ref: "#/components/schemas/NotNullOrEmptyString"
+      responses:
+        '200':
+          description: Expected response to a valid request
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidPayloadError"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /account/invite:
+    post:
+      summary: Send an invite. It depends on INVITATION_MODE setting
+      x-eov-operation-handler: AccountController
+      operationId: inviteAccount
+      tags:
+        - account
+      security:
+        - tokenAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Expected response to a valid request
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidPayloadError"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '405':
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MethodNotAllowedError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /account/accept-invitation:
+    post:
+      summary: Accept an invite
+      x-eov-operation-handler: AccountController
+      operationId: acceptInvite
+      tags:
+        - account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - code
+                - password
+              properties:
+                username:
+                  type: string
+                code:
+                  type: string
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidPayloadError"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '405':
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MethodNotAllowedError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /account/{username}:
+    parameters:
+      - name: username
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The username of the account
+    get:
+      summary: Get user
+      x-eov-operation-handler: AccountController
+      operationId: getAccount
+      tags:
+        - account
+      security:
+        - tokenAuth: [ ]
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+    delete:
+      summary: Delete account
+      x-eov-operation-handler: AccountController
+      operationId: deleteAccount
+      tags:
+        - account
+      security:
+        - tokenAuth: [ ]
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /account/{username}/{action}:
+    parameters:
+      - name: username
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The username of the account
+      - name: action
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+            - block
+            - unblock
+        description: The action to perform
+    patch:
+      summary: Block/unblock user
+      x-eov-operation-handler: AccountController
+      operationId: blockUnblockUser
+      tags:
+        - account
+      security:
+        - tokenAuth: [ ]
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+    delete:
+      summary: Delete account
+      x-eov-operation-handler: AccountController
+      operationId: deleteAccount
+      tags:
+        - account
+      security:
+        - tokenAuth: [ ]
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /register:
+    post:
+      summary: Register account
+      x-eov-operation-handler: AccountController
+      operationId: register
+      tags:
+        - account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - username
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                username:
+                  $ref: "#/components/schemas/NotNullOrEmptyString"
+                password:
+                  $ref: "#/components/schemas/NotNullOrEmptyString"
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - session
+                properties:
+                  session:
+                    type: string
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidPayloadError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConflictError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /login:
+    post:
+      summary: Login
+      x-eov-operation-handler: AccountController
+      operationId: login
+      tags:
+        - account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  $ref: "#/components/schemas/NotNullOrEmptyString"
+                password:
+                  $ref: "#/components/schemas/NotNullOrEmptyString"
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session:
+                    $ref: "#/components/schemas/NotNullOrEmptyString"
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidPayloadError"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /api/v0/record:
+    get:
+      summary: Get records
+      x-eov-operation-handler: StoreController
+      operationId: getRecords
+      tags:
+        - store
+      security:
+        - tokenAuth: [ ]
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hosts:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      additionalProperties:
+                        type: number
+                        minimum: 0
+
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+    post:
+      summary: Add record
+      x-eov-operation-handler: StoreController
+      operationId: addRecords
+      tags:
+        - store
+      security:
+        - tokenAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Record"
+      responses:
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidPayloadError"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /api/v0/record/next:
+    get:
+      summary: Get records
+      x-eov-operation-handler: StoreController
+      operationId: getNextRecords
+      tags:
+        - store
+      security:
+        - tokenAuth: [ ]
+      parameters:
+        - name: host
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The hostname
+        - name: tag
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          description: The tag
+        - name: count
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+          description: The page size
+        - name: start
+          in: query
+          required: false
+          schema:
+              type: integer
+              minimum: 0
+              default: 0
+          description: The start idx
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Record"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /api/v0/store:
+    delete:
+      summary: Delete store
+      x-eov-operation-handler: StoreController
+      operationId: deleteStore
+      tags:
+        - store
+      security:
+        - tokenAuth: [ ]
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hosts:
+                    type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /sync/count:
+    get:
+      summary: get sync count
+      x-eov-operation-handler: SyncController
+      operationId: getCount
+      tags:
+        - sync
+      security:
+        - tokenAuth: [ ]
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - count
+                properties:
+                  count:
+                    type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /sync/status:
+    get:
+      summary: Get sync status
+      x-eov-operation-handler: SyncController
+      operationId: status
+      tags:
+        - sync
+      security:
+        - tokenAuth: [ ]
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - count
+                  - username
+                  - page_size
+                  - version
+                properties:
+                  count:
+                    type: integer
+                  username:
+                    type: string
+                  page_size:
+                    type: integer
+                  version:
+                    type: string
+                  deleted:
+                    type: array
+                    items:
+                      type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /sync/history:
+    get:
+      summary: Get sync history
+      x-eov-operation-handler: SyncController
+      operationId: getHistory
+      tags:
+        - sync
+      security:
+        - tokenAuth: [ ]
+      parameters:
+        - name: sync_ts
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: last sync timestamp
+        - name: history_ts
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: history timestamp
+        - name: host
+          in: query
+          allowEmptyValue: true
+          schema:
+            type: string
+            nullable: true
+          description: hostname to exclude
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - history
+                properties:
+                  history:
+                    type: array
+                    items:
+                      type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /sync/calendar/{focus}:
+    get:
+      summary: Get sync calendar
+      x-eov-operation-handler: SyncController
+      operationId: calendar
+      tags:
+        - sync
+      security:
+        - tokenAuth: [ ]
+      parameters:
+        - name: focus
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - year
+              - month
+              - day
+          description: The focus of the calendar
+        - name: year
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 2020
+            maximum: 2100
+          description: The year
+        - name: month
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: The month
+        - name: tz
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[A-Za-z0-9\/\+\-]+$'
+          description: The timezone
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /history:
+    post:
+      summary: Add items to history
+      x-eov-operation-handler: HistoryController
+      operationId: add
+      tags:
+        - history
+      security:
+        - tokenAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/AddHistoryRequest"
+      responses:
+        '200':
+          description: Expected response to a valid request
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidPayloadError"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+    delete:
+      summary: Delete items to history
+      x-eov-operation-handler: HistoryController
+      operationId: deleteHistory
+      tags:
+        - history
+      security:
+        - tokenAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - client_id
+              properties:
+                client_id:
+                  $ref: "#/components/schemas/NotNullOrEmptyString"
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidPayloadError"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '500':
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+components:
+  securitySchemes:
+    tokenAuth:
+      type: http
+      scheme: Token
+  schemas:
+    Record:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - idx
+        - timestamp
+        - data
+        - host
+        - version
+        - tag
+      properties:
+        id:
+          $ref: "#/components/schemas/NotNullOrEmptyString"
+        idx:
+          type: integer
+          minimum: 0
+        timestamp:
+          type: integer
+          minimum: 1000
+        data:
+          type: object
+          required:
+            - data
+            - content_encryption_key
+          properties:
+            data:
+              $ref: "#/components/schemas/NotNullOrEmptyString"
+            content_encryption_key:
+              $ref: "#/components/schemas/NotNullOrEmptyString"
+        host:
+          type: object
+          required:
+            - id
+            - name
+          properties:
+            id:
+              $ref: "#/components/schemas/NotNullOrEmptyString"
+            name:
+              type: string
+        version:
+          type: string
+        tag:
+          type: string
+    AddHistoryRequest:
+      type: object
+      required:
+        - id
+        - timestamp
+        - data
+        - hostname
+      properties:
+        id:
+          $ref: "#/components/schemas/NotNullOrEmptyString"
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: string
+        hostname:
+          $ref: "#/components/schemas/NotNullOrEmptyString"
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+    NotNullOrEmptyString:
+      type: string
+      nullable: false
+      minLength: 1
+      pattern: '^\S+[\S ]*\S+$'
+    BasicErrorModel:
+      type: object
+      required:
+        - status
+        - reason
+      properties:
+        status:
+          type: integer
+          format: int32
+        reason:
+          type: string
+    InvalidPayloadError:
+      allOf:
+        - $ref: '#/components/schemas/BasicErrorModel'
+        - type: object
+          properties:
+            status:
+              example: 400
+            reason:
+              example: Invalid payload
+    UnauthorizedError:
+      allOf:
+        - $ref: '#/components/schemas/BasicErrorModel'
+        - type: object
+          properties:
+            status:
+              example: 401
+            reason:
+              example: Unauthorized
+    ForbiddenError:
+      allOf:
+        - $ref: '#/components/schemas/BasicErrorModel'
+        - type: object
+          properties:
+            status:
+              example: 403
+            reason:
+              example: Forbidden
+    NotFoundError:
+      allOf:
+        - $ref: '#/components/schemas/BasicErrorModel'
+        - type: object
+          properties:
+            status:
+              example: 404
+            reason:
+              example: Not Found
+    MethodNotAllowedError:
+      allOf:
+        - $ref: '#/components/schemas/BasicErrorModel'
+        - type: object
+          properties:
+            status:
+              example: 405
+            reason:
+              example: Method Not Allowed
+    ConflictError:
+      allOf:
+        - $ref: '#/components/schemas/BasicErrorModel'
+        - type: object
+          properties:
+            status:
+              example: 409
+            reason:
+              example: Conflict
+    InternalServerError:
+      allOf:
+        - $ref: '#/components/schemas/BasicErrorModel'
+        - type: object
+          properties:
+            status:
+              example: 500
+            reason:
+              example: Internal Server Error

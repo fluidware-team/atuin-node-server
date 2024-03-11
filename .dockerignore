@@ -1,0 +1,12 @@
+**
+
+!.npmrc
+!package*.json
+!tsconfig*.json
+!src
+!openapi
+!public
+!templates
+!views
+!scripts/version-update.mjs
+src/version.ts
