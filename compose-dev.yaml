@@ -1,6 +1,4 @@
 ---
-version: '3.9'
-
 x-default-logging: &logging
   driver: "json-file"
   options:
@@ -39,5 +37,5 @@ services:
       - ./data/npmcache:/srv/app/node_modules:Z
     logging: *logging
     ports:
-      - "127.0.0.1:8080:8080"
-      - "[::1]:8080:8080"
+      - "127.0.0.1:8387:8080"
+      - "[::1]:8387:8080"
