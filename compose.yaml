@@ -57,4 +57,3 @@ services:
       mariadb:
         condition: service_healthy
     logging: *logging
-
