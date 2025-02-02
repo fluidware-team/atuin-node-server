@@ -1,0 +1,63 @@
+/*
+ * Copyright Fluidware srl
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+export interface StoreNextParams {
+  host: string;
+  tag: string;
+  count: number;
+  start: number;
+}
+
+export interface Store {
+  id: string;
+  idx: number;
+  host: {
+    id: string;
+    name: string;
+  };
+  timestamp: number;
+  version: string;
+  tag: string;
+  data: {
+    data: string;
+    content_encryption_key: string;
+  };
+}
+
+export interface StoreRow {
+  clientId: string;
+  host: string;
+  tag: string;
+  idx: number;
+  timestamp: number;
+  version: string;
+  data: string;
+  cek: string;
+}
+
+export interface StoreCacheIndexRow {
+  host: string;
+  tag: string;
+  idx: number;
+}
+
+export interface StoreCacheIndex {
+  hosts: {
+    [host: string]: {
+      [tag: string]: number;
+    };
+  };
+}

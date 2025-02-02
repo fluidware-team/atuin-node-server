@@ -1,0 +1,147 @@
+---
+variables:
+  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+    - if: '$CI_COMMIT_TAG'
+
+.use_kaniko:
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+
+.npm_cache:
+  image: node:22.13.1-alpine3.20
+  variables:
+    NPM_CONFIG_CACHE: .npm
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+  before_script:
+    - npm ci --prefer-offline --no-audit --no-progress
+
+default:
+  interruptible: true
+  cache: []
+
+stages:
+  - lint
+  - compile
+  - test
+  - build
+  - publish
+  - deploy
+
+lint:
+  extends: .npm_cache
+  stage: lint
+  script:
+    - npm run lint
+
+docker-hadolint:
+  stage: lint
+  image: hadolint/hadolint:v2.12.0-debian
+  script:
+    - hadolint Dockerfile
+
+compile:
+  extends: .npm_cache
+  stage: compile
+  script:
+    - npm run build
+
+test:
+  extends: .npm_cache
+  stage: test
+  variables:
+    # Instruct Testcontainers to use the daemon of DinD, use port 2375 for non-tls connections.
+    DOCKER_HOST: "tcp://docker:2375"
+    # Instruct Docker not to start over TLS.
+    DOCKER_TLS_CERTDIR: ""
+    # Improve performance with overlayfs.
+    DOCKER_DRIVER: overlay2
+  services:
+    - name: docker:dind
+      # explicitly disable tls to avoid docker startup interruption
+      command: [ "--tls=false" ]
+  script:
+    - npm run test
+  coverage: '/All files[^\|]*\|[^\|]*\s+([\d\.]+)/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: reports/coverage/cobertura-coverage.xml
+
+build-image:
+  extends: .use_kaniko
+  stage: build
+  script:
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --no-push
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+.publish-image:
+  variables:
+    ARCH: amd64
+  extends: .use_kaniko
+  stage: publish
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination ${CONTAINER_RELEASE_IMAGE}-${ARCH}
+  rules:
+    - if: $CI_COMMIT_TAG
+
+publish-image-amd64:
+  extends: .publish-image
+
+publish-image-arm64:
+  extends: .publish-image
+  variables:
+    ARCH: arm64
+  tags:
+    - arm64
+
+deploy-multi-arch:
+  variables:
+    GIT_STRATEGY: none
+  stage: publish
+  needs:
+    - job: publish-image-amd64
+    - job: publish-image-arm64
+  image:
+    name: curlimages/curl:latest
+    entrypoint: [""]
+  before_script:
+    - curl -s -L https://github.com/estesp/manifest-tool/releases/download/v2.0.8/binaries-manifest-tool-2.0.8.tar.gz | tar xvz
+    - mv manifest-tool-linux-amd64 manifest-tool
+    - chmod +x manifest-tool
+  script:
+    - ./manifest-tool -username $CI_REGISTRY_USER
+      --password $CI_REGISTRY_PASSWORD
+      push from-args
+      --platforms linux/amd64,linux/arm64
+      --template ${CONTAINER_RELEASE_IMAGE}-ARCH
+      --target ${CONTAINER_RELEASE_IMAGE}
+  rules:
+    - if: $CI_COMMIT_TAG
+
+deploy:
+  stage: deploy
+  trigger: fw/devops/renovate
+  variables:
+    RENOVATE_REPOS_LIST: "fw/devops/fw-infra-ansible"
+  rules:
+    - if: $CI_COMMIT_TAG

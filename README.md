@@ -7,11 +7,16 @@ Natuin is an alternative to [atuin](https://atuin.sh) server
 - [x] administrator interface
   - [x] user deletion
   - [x] user creation
-- [x] forgot password
-- [ ] open registration
-  - [ ] email verification
+  - [x] user enable/disable
+- [ ] account management
+  - [x] password reset
+  - [ ] email change
+- [x] registration
+  - [x] email verification
   - [x] domain whitelist
-  - [ ] domain blacklist
+  - [x] domain blacklist
+  - [x] invite system
+  - [x] password rules (min length, special characters, etc.)
 - [ ] session management via tokens
   - [x] token expiration
   - [x] token deletion
